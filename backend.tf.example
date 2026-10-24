@@ -1,0 +1,4 @@
+# Local state is implicit until this file is copied to backend.tf.
+terraform {
+  backend "azurerm" {}
+}

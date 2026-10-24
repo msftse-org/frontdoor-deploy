@@ -1,0 +1,63 @@
+# Copy to terraform.tfvars at the repository root and replace every placeholder.
+# Start: README.md. All inputs/defaults: docs/reference.md.
+# Keep one checkout/state per environment; do not switch environments in the same local state.
+# 1. Customer subscription, resource group and tags.
+subscription_id = "00000000-0000-0000-0000-000000000000"
+resource_group = {
+  name     = "rg-customer-edge-dev"
+  location = "westeurope" # Resource-group metadata only. Front Door is GLOBAL.
+  create   = true
+}
+tags = {
+  customer    = "customer"
+  environment = "dev"
+  owner       = "platform-team"
+}
+
+# 2. Customer names. Keep keys such as public/web/primary stable after deployment.
+front_door = {
+  name = "afd-customer-dev"
+  endpoints = {
+    public = { name = "fde-customer-dev-unique" }
+  }
+  # 3. Existing app and its private connection. This does not create an app.
+  origin_groups = {
+    web = {
+      name = "og-web"
+      # Replace /health with an existing unauthenticated path that returns HTTP 200.
+      health_probe = { path = "/health", request_type = "GET" }
+      origins = {
+        primary = {
+          name = "origin-web-primary"
+          # Use defaultHostName returned by Azure; newer apps can have regional hostnames.
+          host_name = "replace-with-existing-app.azurewebsites.net"
+          private_link = {
+            target_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-app/providers/Microsoft.Web/sites/replace-with-existing-app"
+            target_type        = "sites"
+            location           = "westeurope" # Supported Front Door Private Link region near THIS app.
+            request_message    = "afd-customer-dev: web primary"
+          }
+        }
+      }
+    }
+  }
+  # 4. URL routing. The first app receives all paths.
+  routes = {
+    web = {
+      name              = "route-web"
+      endpoint_key      = "public"
+      origin_group_key  = "web"
+      patterns_to_match = ["/*"]
+    }
+  }
+}
+
+# 5. Customer WAF names. Inspection starts in Detection (no blocking).
+waf_policies = {
+  default = {
+    name                 = "wafcustomerdev"
+    security_policy_name = "security-default"
+    # Defaults: Detection, body inspection, DRS 2.1 and Bot Manager 1.1.
+    # Enable external WAF logs, tune, then set mode = "Prevention".
+  }
+}

@@ -1,0 +1,6 @@
+# Nonsecret backend coordinates. Never put access keys, SAS tokens or client secrets here.
+storage_account_name = "stcustomerterraform"
+container_name       = "tfstate"
+key                  = "customer/dev/frontdoor.tfstate"
+use_azuread_auth     = true
+use_cli              = true

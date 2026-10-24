@@ -1,0 +1,157 @@
+{
+  "subscription_id": "00000000-0000-0000-0000-000000000000",
+  "resource_group": {
+    "name": "rg-customer-edge-prod",
+    "location": "westeurope"
+  },
+  "tags": {
+    "environment": "prod",
+    "owner": "platform-team"
+  },
+  "front_door": {
+    "name": "afd-customer-prod",
+    "endpoints": {
+      "public": {
+        "name": "fde-customer-prod-unique"
+      }
+    },
+    "origin_groups": {
+      "web": {
+        "name": "og-web",
+        "health_probe": {
+          "path": "/health",
+          "request_type": "GET"
+        },
+        "origins": {
+          "primary": {
+            "name": "origin-customer-web",
+            "host_name": "customer-web.azurewebsites.net",
+            "priority": 1,
+            "private_link": {
+              "target_resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-app/providers/Microsoft.Web/sites/customer-web",
+              "location": "westeurope",
+              "target_type": "sites",
+              "request_message": "afd-customer-prod: customer-web"
+            }
+          },
+          "backup": {
+            "name": "origin-customer-web-backup",
+            "host_name": "customer-web-backup.azurewebsites.net",
+            "priority": 2,
+            "private_link": {
+              "target_resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-app/providers/Microsoft.Web/sites/customer-web-backup",
+              "location": "westeurope",
+              "target_type": "sites",
+              "request_message": "afd-customer-prod: customer-web-backup"
+            }
+          }
+        }
+      },
+      "api": {
+        "name": "og-api",
+        "health_probe": {
+          "path": "/health",
+          "request_type": "GET"
+        },
+        "origins": {
+          "primary": {
+            "name": "origin-customer-api",
+            "host_name": "customer-api.azurewebsites.net",
+            "priority": 1,
+            "private_link": {
+              "target_resource_id": "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-existing-app/providers/Microsoft.Web/sites/customer-api",
+              "location": "westeurope",
+              "target_type": "sites",
+              "request_message": "afd-customer-prod: customer-api"
+            }
+          }
+        }
+      }
+    },
+    "routes": {
+      "web": {
+        "name": "route-web",
+        "endpoint_key": "public",
+        "origin_group_key": "web",
+        "patterns_to_match": [
+          "/*"
+        ],
+        "rule_set_keys": [
+          "headers"
+        ]
+      },
+      "api": {
+        "name": "route-api",
+        "endpoint_key": "public",
+        "origin_group_key": "api",
+        "patterns_to_match": [
+          "/api",
+          "/api/*"
+        ],
+        "rule_set_keys": [
+          "headers"
+        ]
+      },
+      "static": {
+        "name": "route-static",
+        "endpoint_key": "public",
+        "origin_group_key": "web",
+        "patterns_to_match": [
+          "/assets/*"
+        ],
+        "cache": {
+          "query_string_caching_behavior": "UseQueryString",
+          "compression_enabled": true,
+          "content_types_to_compress": [
+            "text/css",
+            "application/javascript"
+          ]
+        }
+      }
+    },
+    "rule_sets": {
+      "headers": {
+        "name": "SecurityHeaders",
+        "rules": {
+          "baseline": {
+            "name": "Baseline",
+            "order": 0,
+            "response_headers": [
+              {
+                "name": "X-Content-Type-Options",
+                "value": "nosniff"
+              },
+              {
+                "name": "Strict-Transport-Security",
+                "value": "max-age=31536000"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "waf_policies": {
+    "default": {
+      "name": "wafcustomerprod",
+      "security_policy_name": "security-default",
+      "custom_rules": {
+        "rate": {
+          "name": "RateLimit",
+          "priority": 100,
+          "type": "RateLimitRule",
+          "rate_limit_threshold": 1000,
+          "match_conditions": [
+            {
+              "match_variable": "RequestUri",
+              "operator": "Contains",
+              "match_values": [
+                "/"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
