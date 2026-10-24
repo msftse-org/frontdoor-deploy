@@ -20,7 +20,7 @@ West Europe is written in the example, not a hidden module default. Keep both lo
 
 ## How it works
 
-![Front Door architecture: public HTTPS traffic passes through WAF in Detection, a route and an origin group, then reaches the existing Web App over Private Link. The app owner approves the connection; diagnostics are managed separately.](diagrams/frontdoor-architecture.png)
+![Front Door Premium architecture: WAF in Detection, public endpoint, routes and nested origins, Microsoft-managed private endpoints, and existing Web Apps. Blue shows the starter path; purple shows an optional API expansion. The app owner approves connections and disables public access after cutover.](diagrams/frontdoor-architecture.png)
 
 A **route** selects an **origin group** (a pool of application destinations). Each **origin** identifies an existing app. Front Door manages its own private endpoint; it does not need to share a VNet with the Web App. The app owner approves the connection and controls the app's public access. See [Private Link behavior](https://learn.microsoft.com/en-us/azure/frontdoor/private-link).
 

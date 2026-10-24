@@ -10,7 +10,9 @@ A **route** maps URL paths to an **origin group**; each **origin** in that group
 
 ## Architecture
 
-![Front Door architecture](docs/diagrams/frontdoor-architecture.png)
+![Front Door Premium architecture: WAF in Detection, public endpoint, routes and nested origins, Microsoft-managed private endpoints, and existing Web Apps. Blue shows the starter path; purple shows an optional API expansion. The app owner approves connections and disables public access after cutover.](docs/diagrams/frontdoor-architecture.png)
+
+Blue shows the starter deployment; purple shows optional API expansion. [Open the full-size diagram](docs/diagrams/frontdoor-architecture.png).
 
 ## Starting configuration
 
